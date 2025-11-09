@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday, ZABII!</title>
+    
+    <!-- 1. Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. GSAP (GreenSock Animation Platform) for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    
+    <!-- 3. Tone.js for music -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.min.js"></script>
+
+    <style>
+        /* Custom font for a magical feel */
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        .font-magic {
+            font-family: 'Dancing Script', cursive;
+        }
+
+        /* --- Page & Background Theme --- */
+        .gradient-background {
+            background: linear-gradient(135deg, #fce3ec 0%, #ffe8cc 50%, #e0c3fc 100%);
+            overflow: hidden;
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+        }
+
+        /* --- Home Screen Character --- */
+        #gift-box {
+            animation: wave 2.5s infinite;
+            transform-origin: bottom center;
+        }
+        @keyframes wave {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(8deg) scale(1.05); }
+            75% { transform: rotate(-8deg) scale(1.05); }
+        }
+
+        /* --- Button Pulse --- */
+        .pulse-button {
+            animation: pulse-glow 2s infinite ease-in-out;
+            box-shadow: 0 0 20px rgba(253, 224, 71, 0.6);
+        }
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(253, 224, 71, 0.6); }
+            50% { transform: scale(1.05); box-shadow: 0 0 35px rgba(253, 224, 71, 1); }
+        }
+
+        /* --- 3D Card Animation --- */
+        .card-container {
+            perspective: 1500px;
+        }
+        .card {
+            width: 350px;
+            height: 500px;
+            position: relative;
+            transform-style: preserve-3d;
+            /* MODIFICATION: Removed CSS transition to prevent conflict with GSAP */
+            /* transition: transform 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55); */
+            /* Initially hidden, will be shown by GSAP */
+            opacity: 0;
+            visibility: hidden;
+        }
+        /* MODIFICATION: This class is not needed; GSAP handles the transform. 
+           The 'is-open' class is now just for JS state. */
+        /* .card.is-open {
+            transform: rotateY(-180deg);
+        } */
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        .card-front {
+            background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            text-align: center;
+            border: 2px solid white;
+        }
+        .card-inside {
+            background: white;
+            z-index: 1;
+            transform: rotateY(180deg);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+        /* Make inside content invisible until card is fully open */
+        .card-inside-content {
+            opacity: 0;
+            transition: opacity 0.5s ease-in 0.8s; /* Delay opacity */
+        }
+        .card.is-open .card-inside-content {
+            opacity: 1;
+        }
+        
+        /* --- Decorations (Balloons/Confetti) --- */
+        .decoration {
+            position: absolute;
+            opacity: 0.7;
+            z-index: 0;
+        }
+        .balloon {
+            width: 30px;
+            height: 40px;
+            background: #ffadad;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+        .confetti {
+            width: 8px;
+            height: 8px;
+            background: #fde047;
+            transform: rotate(45deg);
+        }
+        
+        /* --- Glowing Text --- */
+        .glowing-text {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px #fff, 0 0 20px #f871b2, 0 0 30px #f871b2;
+            }
+            to {
+                text-shadow: 0 0 20px #fff, 0 0 30px #ec4899, 0 0 40px #ec4899;
+            }
+        }
+        
+        /* --- AI Chatbot --- */
+        #chat-messages {
+            height: 120px; /* Fixed height for chat */
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+        .chat-bubble {
+            max-width: 80%;
+            padding: 0.5rem 0.75rem;
+            border-radius: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+        .chat-bubble.user {
+            background-color: #dbeafe; /* Blue 200 */
+            color: #1e40af; /* Blue 800 */
+            align-self: flex-end;
+            border-bottom-right-radius: 0.25rem;
+        }
+        .chat-bubble.model {
+            background-color: #fce7f3; /* Pink 100 */
+            color: #9d174d; /* Pink 800 */
+            align-self: flex-start;
+            border-bottom-left-radius: 0.25rem;
+        }
+        #party-bot-avatar {
+            animation: bounce-glow 3s infinite;
+        }
+        @keyframes bounce-glow {
+            0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 5px #fbbf24); }
+            50% { transform: translateY(-5px); filter: drop-shadow(0 0 10px #f59e0b); }
+        }
+
+        /* --- Particle Canvas --- */
+        #sparkle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allow clicks to go through */
+            /* MODIFICATION: Lowered z-index to be behind content but in front of background */
+            z-index: 5; 
+        }
+        
+        /* --- Responsive Design --- */
+        @media (max-width: 768px) {
+            .card {
+                width: 90vw;
+                /* MODIFICATION: Adjusted height for better mobile fit */
+                height: 65vh; 
+            }
+            .card-inside {
+                padding: 1rem;
+            }
+            #chat-messages {
+                height: 100px;
+            }
+            .font-magic {
+                font-size: 2.25rem; /* 3xl */
+            }
+        }
+    </style>
+</head>
+<body class="bg-pink-50 text-gray-800">
+
+    <!-- Background Decorations -->
+    <div class="gradient-background" id="decoration-wrapper"></div>
+
+    <!-- Particle Canvas for Mouse Sparkles -->
+    <canvas id="sparkle-canvas"></canvas>
+
+    <!-- ======== SCREEN 1: HOME PAGE ======== -->
+    <div id="home-screen" class="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-1000">
+        <!-- Animated Waving Character -->
+        <div id="gift-box" class="mb-8">
+            <div class="text-7xl md:text-8xl transform scale-100">🎁</div>
+        </div>
+        
+        <h1 class="text-4xl md:text-5xl font-bold text-pink-500 font-magic mb-4">
+            🎉 Welcome Darling , Here's Birthday Surprise!
+        </h1>
+        <p class="text-lg md:text-xl text-gray-600 mb-10">
+            A special magical celebration waiting ...
+        </p>
+        
+        <button id="surprise-btn" class="pulse-button text-gray-900 bg-gradient-to-r from-yellow-300 to-amber-400 hover:from-yellow-400 hover:to-amber-500 font-bold py-4 px-10 rounded-full text-2xl shadow-lg transition-all duration-300 transform hover:scale-105">
+            Surprise Me!
+        </button>
+    </div>
+
+    <!-- ======== SCREEN 2: CARD EXPERIENCE ======== -->
+    <div id="card-screen" class="absolute inset-0 z-10 flex items-center justify-center p-4 opacity-0">
+        <!-- 3D Card Container -->
+        <div class="card-container">
+            <div id="card" class="card">
+                <!-- Card Front (Outside) -->
+                <div class="card-face card-front">
+                    <div class="text-6xl mb-4">💌</div>
+                    <h2 class="text-4xl font-magic text-white" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                        A Very Special Message
+                    </h2>
+                    <p class="text-white text-lg font-semibold">...just for ZABII!</p>
+                </div>
+                
+                <!-- Card Inside -->
+                <div class="card-face card-inside">
+                    <div class="card-inside-content flex flex-col h-full">
+                        <!-- Glowing Message -->
+                        <div class="text-center">
+                            <h2 class="glowing-text text-3xl md:text-4xl font-magic text-pink-500 font-bold">
+                                Happy Birthday, ZABII!
+                            </h2>
+                            <p class="text-lg text-gray-600 font-semibold mb-2">
+                                <!-- MODIFICATION: Corrected text from user request -->
+                                🎂💫 You are everything i need 🫂 , LOVE YOU MAN ✨😭 !
+                            </p>
+                        </div>
+                        
+                        <!-- Make a Wish Button -->
+                        <button id="wish-btn" class="my-3 w-full bg-gradient-to-r from-purple-400 to-pink-500 hover:from-purple-500 hover:to-pink-600 text-white font-bold py-2 px-4 rounded-full shadow-md transform transition-transform hover:scale-105">
+                            Make a Wish 🎂
+                        </button>
+                        
+                        <!-- AI Chatbot -->
+                        <div id="chatbot-container" class="flex-grow flex flex-col min-h-0">
+                            <div class="flex items-center justify-center space-x-2 my-2">
+                                <div id="party-bot-avatar" class="text-4xl">🤖</div>
+                                <h3 class="font-bold text-purple-600">Anas Bot 🎉</h3>
+                            </div>
+                            
+                            <div id="chat-messages" class="flex-1 p-2 rounded-lg flex flex-col space-y-2">
+                                <!-- Initial Greeting -->
+                                <div class="chat-bubble model">
+                                    Myyy ZABII! I’ve been waiting all year to celebrate YOU! 💝
+                                </div>
+                                <!-- MODIFICATION: Added a little hint for the user -->
+                                <div class="chat-bubble model">
+                                    Try telling me something you love, and I'll write a special wish for you! 💖
+                                </div>
+                            </div>
+                            
+                            <form id="chat-form" class="mt-2 flex space-x-2">
+                                <input type="text" id="chat-input" placeholder="Say something!" class="flex-1 border border-gray-300 rounded-full py-2 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" required>
+                                <button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-full w-10 h-10 flex items-center justify-center transform transition-transform hover:scale-110">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 16.571V11.5a1 1 0 012 0v5.071a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======== MUSIC CONTROLS ======== -->
+    <div id="music-controls" class="fixed bottom-4 right-4 z-50">
+        <button id="music-toggle" class="bg-white/70 backdrop-blur-sm text-pink-500 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transform transition-transform hover:scale-110">
+            <!-- Play Icon -->
+            <svg id="icon-play" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+            <!-- Pause Icon (hidden by default) -->
+            <svg id="icon-pause" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+        </button>
+    </div>
+
+
+    <script>
+        // --- JAVASCRIPT GLOBAL STATE ---
+        let musicPlayer;
+        let isMusicPlaying = false;
+        let chatHistory = []; // For Gemini API
+        
+        // DOM Elements
+        const homeScreen = document.getElementById('home-screen');
+        const cardScreen = document.getElementById('card-screen');
+        const surpriseBtn = document.getElementById('surprise-btn');
+        const card = document.getElementById('card');
+        const wishBtn = document.getElementById('wish-btn');
+        
+        // Chat Elements
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+
+        // Music Elements
+        const musicToggle = document.getElementById('music-toggle');
+        const iconPlay = document.getElementById('icon-play');
+        const iconPause = document.getElementById('icon-pause');
+        
+        // Sparkle Canvas
+        const canvas = document.getElementById('sparkle-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+
+        // --- 1. INITIALIZATION ---
+        // MODIFICATION: Changed from window.onload to DOMContentLoaded for faster, more reliable script execution.
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // MODIFICATION: Added a check to ensure external libraries are loaded before running the app logic.
+            if (typeof gsap === 'undefined') {
+                console.error("GSAP library is not loaded!");
+                alert("Error: Animations could not be loaded. Please refresh.");
+                return;
+            }
+            if (typeof Tone === 'undefined') {
+                console.error("Tone.js library is not loaded!");
+                // We can still run the app, but music-related functions will be disabled.
+                console.warn("Music library (Tone.js) failed to load. Music will be disabled.");
+            }
+
+            initBackgroundDecorations();
+            
+            // MODIFICATION: Only initialize music if Tone.js successfully loaded.
+            if (typeof Tone !== 'undefined') {
+                initMusic();
+                musicToggle.addEventListener('click', toggleMusic);
+            } else {
+                // Hide music controls if library failed
+                const musicControls = document.getElementById('music-controls');
+                if(musicControls) musicControls.style.display = 'none';
+            }
+
+            initSparkleCanvas();
+            
+            surpriseBtn.addEventListener('click', openTheCard);
+            
+            // MODIFICATION: Added a click listener to the card itself as a fallback.
+            // If the user clicks the card, it will also trigger the flip.
+            card.addEventListener('click', flipCardOnClick); 
+            
+            wishBtn.addEventListener('click', makeAWish);
+            chatForm.addEventListener('submit', handleChatSubmit);
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        });
+        
+        // --- 2. BACKGROUND & HOME SCREEN ANIMATIONS ---
+        function initBackgroundDecorations() {
+            const wrapper = document.getElementById('decoration-wrapper');
+            for (let i = 0; i < 30; i++) {
+                // Create Balloons
+                if (i % 2 === 0) {
+                    const balloon = document.createElement('div');
+                    balloon.className = 'decoration balloon';
+                    const x = Math.random() * 100;
+                    const delay = Math.random() * 10;
+                    const duration = 10 + Math.random() * 10;
+                    const color = ['#ffadad', '#ffd6a5', '#caffbf', '#a0c4ff', '#bdb2ff'][Math.floor(Math.random() * 5)];
+                    
+                    balloon.style.left = `${x}vw`;
+                    balloon.style.background = color;
+                    wrapper.appendChild(balloon);
+                    
+                    gsap.to(balloon, {
+                        y: '-110vh',
+                        x: '+=10vw',
+                        duration: duration,
+                        delay: delay,
+                        repeat: -1,
+                        ease: 'linear',
+                        opacity: 0.8
+                    });
+                }
+                // Create Confetti
+                else {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'decoration confetti';
+                    const x = Math.random() * 100;
+                    const delay = Math.random() * 10;
+                    const duration = 5 + Math.random() * 5;
+                    const color = ['#fde047', '#ff8fab', '#84a9ff', '#52b788'][Math.floor(Math.random() * 4)];
+                    
+                    confetti.style.left = `${x}vw`;
+                    confetti.style.background = color;
+                    wrapper.appendChild(confetti);
+
+                    gsap.to(confetti, {
+                        y: '110vh',
+                        rotation: 360,
+                        duration: duration,
+                        delay: delay,
+                        repeat: -1,
+                        ease: 'linear'
+                    });
+                }
+            }
+        }
+        
+        // --- 3. THE "SURPRISE ME" TRANSITION ---
+        
+        // MODIFICATION: Added a new function just for the card flip.
+        // This can be called by the main timeline or by a direct click.
+        function flipCardOnClick() {
+            if (card.classList.contains('is-open')) return; // Don't flip if already open
+
+            // Start audio context if it hasn't started
+            if (typeof Tone !== 'undefined' && Tone.Transport.state !== 'started') {
+                Tone.start();
+            }
+
+            gsap.to(card, {
+                transform: 'rotateY(-180deg)', 
+                duration: 1.2,
+                ease: 'cubic-bezier(0.68, -0.55, 0.27, 1.55)',
+                onComplete: () => {
+                    card.classList.add('is-open');
+                    burstConfetti(150);
+                    if (typeof Tone !== 'undefined') {
+                        playMusic();
+                    }
+                }
+            });
+        }
+
+        function openTheCard() {
+            // Start audio context on user gesture
+            // MODIFICATION: Check if Tone is defined before using it
+            if (typeof Tone !== 'undefined') {
+                Tone.start();
+            }
+            
+            const tl = gsap.timeline();
+            tl
+                .to(homeScreen, { opacity: 0, duration: 0.8, ease: 'power2.inOut' })
+                .set(homeScreen, { display: 'none' })
+                // MODIFICATION: Added padding to card-screen for mobile view
+                .set(cardScreen, { opacity: 1, padding: '1rem' }) 
+                .set(card, { opacity: 1, visibility: 'visible', transform: 'rotateY(0)' })
+                .to(card, { // This is the main animation
+                    transform: 'rotateY(-180deg)', 
+                    duration: 1.2,
+                    ease: 'cubic-bezier(0.68, -0.55, 0.27, 1.55)',
+                    onComplete: () => {
+                        card.classList.add('is-open');
+                        burstConfetti(150);
+                        // MODIFICATION: Check if Tone is defined before playing
+                        if (typeof Tone !== 'undefined') {
+                            playMusic();
+                        }
+                    }
+                });
+        }
+        
+        // --- 4. MUSIC PLAYER (Tone.js) ---
+        function initMusic() {
+            // MODIFICATION: This function is now wrapped in a check, 
+            // but an extra safeguard doesn't hurt.
+            if (typeof Tone === 'undefined') return;
+
+            // Create a simple synth and a cheerful melody
+            const synth = new Tone.PolySynth(Tone.Synth, {
+                oscillator: { type: 'fatsawtooth' },
+                envelope: { attack: 0.01, decay: 0.2, sustain: 0.2, release: 0.1 }
+            }).toDestination();
+            
+            // Happy Birthday melody snippet
+            const melody = [
+                { time: '0:0', note: 'C4', duration: '8n' },
+                { time: '0:0:2', note: 'C4', duration: '8n' },
+                { time: '0:1', note: 'D4', duration: '4n' },
+                { time: '0:2', note: 'C4', duration: '4n' },
+                { time: '0:3', note: 'F4', duration: '4n' },
+                { time: '0:4', note: 'E4', duration: '2n' },
+                
+                { time: '1:0', note: 'C4', duration: '8n' },
+                { time: '1:0:2', note: 'C4', duration: '8n' },
+                { time: '1:1', note: 'D4', duration: '4n' },
+                { time: '1:2', note: 'C4', duration: '4n' },
+                { time: '1:3', note: 'G4', duration: '4n' },
+                { time: '1:4', note: 'F4', duration: '2n' },
+                
+                // MODIFICATION: Added more melody to make it loop better
+                { time: '2:0', note: 'C4', duration: '8n' },
+                { time: '2:0:2', note: 'C4', duration: '8n' },
+                { time: '2:1', note: 'C5', duration: '4n' },
+                { time: '2:2', note: 'A4', duration: '4n' },
+                { time: '2:3', note: 'F4', duration: '4n' },
+                { time: '2:4', note: 'E4', duration: '2n' },
+
+                { time: '3:0', note: 'B4', duration: '8n' },
+                { time: '3:0:2', note: 'B4', duration: '8n' },
+                { time: '3:1', note: 'A4', duration: '4n' },
+                { time: '3:2', note: 'F4', duration: '4n' },
+                { time: '3:3', note: 'G4', duration: '4n' },
+                { time: '3:4', note: 'F4', duration: '2n' }
+            ];
+            
+            musicPlayer = new Tone.Sequence((time, note) => {
+                synth.triggerAttackRelease(note.note, note.duration, time);
+            }, melody, '1m'); // Loop every measure
+            
+            Tone.Transport.bpm.value = 110;
+            musicPlayer.loop = true;
+            musicPlayer.start(0);
+        }
+        
+        function playMusic() {
+            // MODIFICATION: Check if musicPlayer was successfully initialized
+            if (!musicPlayer || typeof Tone === 'undefined') return;
+            
+            if (Tone.Transport.state !== 'started') {
+                Tone.Transport.start();
+                isMusicPlaying = true;
+                iconPlay.classList.add('hidden');
+                iconPause.classList.remove('hidden');
+            }
+        }
+        
+        function toggleMusic() {
+            // MODIFICATION: Check if musicPlayer was successfully initialized
+            if (!musicPlayer || typeof Tone === 'undefined') return;
+
+            if (isMusicPlaying) {
+                Tone.Transport.pause();
+                isMusicPlaying = false;
+                iconPlay.classList.remove('hidden');
+                iconPause.classList.add('hidden');
+            } else {
+                Tone.start(); // Ensure context is running
+                Tone.Transport.start();
+                isMusicPlaying = true;
+                iconPlay.classList.add('hidden');
+                iconPause.classList.remove('hidden');
+            }
+        }
+
+        // --- 5. PARTICLE & CONFETTI EFFECTS ---
+        function initSparkleCanvas() {
+            document.addEventListener('mousemove', (e) => {
+                createParticle(e.clientX, e.clientY);
+            });
+            document.addEventListener('touchmove', (e) => {
+                if (e.touches[0]) {
+                    createParticle(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            });
+            animateParticles();
+        }
+
+        function createParticle(x, y, color) {
+            const size = Math.random() * 3 + 1;
+            particles.push({
+                x,
+                y,
+                size,
+                color: color || `hsl(${Math.random() * 60 + 20}, 100%, 75%)`, // Gold/Yellow tones
+                life: 30,
+                vx: Math.random() * 4 - 2,
+                vy: Math.random() * 4 - 2,
+            });
+        }
+        
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, index) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                p.vy += 0.05; // gravity
+                
+                if (p.life <= 0) {
+                    particles.splice(index, 1);
+                } else {
+                    ctx.beginPath();
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.life / 30;
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1.0;
+                }
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        
+        function makeAWish() {
+            const rect = wishBtn.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+            
+            for (let i = 0; i < 50; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 2;
+                const color = `hsl(${Math.random() * 360}, 100%, 70%)`;
+                
+                particles.push({
+                    x,
+                    y,
+                    size: Math.random() * 3 + 2,
+                    color,
+                    life: 60,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                });
+            }
+        }
+        
+        function burstConfetti(amount = 50) {
+            const colors = ['#fde047', '#ff8fab', '#84a9ff', '#52b788', '#a0c4ff'];
+            for (let i = 0; i < amount; i++) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height / 2; // Burst from top half
+                
+                particles.push({
+                    x,
+                    y,
+                    size: Math.random() * 4 + 3,
+                    color,
+                    life: 100 + Math.random() * 50,
+                    vx: Math.random() * 8 - 4,
+                    vy: Math.random() * 3 - 1,
+                });
+            }
+        }
+
+        // --- 6. AI CHATBOT (Gemini API) ---
+        
+        // System prompt to define the AI's personality
+        const systemPrompt = `You are Anas, and you are creating this birthday message for ZABII, whom you love very much.
+- ZABII is your **best friend** and **best bro**. This is just as important as your love.
+- You are NOT a generic assistant. You are speaking *as* Anas.
+- Your one and only goal is to celebrate ZABII and express your love and friendship.
+- Every message and wish you write comes *from your heart*.
+- Keep your responses personal, loving, warm, and also casual and cool like you're talking to your best friend.
+- Use a mix of emojis: (💖, 💝, ✨, 💫, 🫂, 🔥, 🙌).
+- ZABII is talking to this "Wish Bot", but you are the voice behind it.
+- When ZABII gives an interest (e.g., "I like gaming"), generate a short, creative, and personal birthday wish related to that interest, as if it's coming from you (Anas).
+- Example: If ZABII says "I love space", you could say: "My bro! I wish for you to shine brighter than all the stars. Happy birthday! 💖🙌"
+- Never break character. Everything is about your love and friendship for ZABII.`;
+
+        async function handleChatSubmit(e) {
+            e.preventDefault();
+            const userInput = chatInput.value.trim();
+            if (!userInput) return;
+            
+            addMessageToChat('user', userInput);
+            chatInput.value = '';
+            
+            // Add user message to history
+            chatHistory.push({ role: "user", parts: [{ text: userInput }] });
+            
+            await getAIResponse();
+        }
+        
+        function addMessageToChat(role, text, isLoading = false) {
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${role}`;
+            
+            if (isLoading) {
+                bubble.innerHTML = '<span class="animate-pulse">Anas Bot 🤖 is thinking...</span>';
+                bubble.id = 'loading-bubble';
+            } else {
+                bubble.textContent = text;
+            }
+            
+            chatMessages.appendChild(bubble);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+        }
+        
+        async function getAIResponse() {
+            addMessageToChat('model', '', true);
+            
+            const apiKey = "AIzaSyAw-sS9h6WioN57i_nh69_lMkFaI_nM4vo"; // MODIFICATION: API key updated as requested
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: chatHistory,
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+            };
+            
+            let retries = 3;
+            let delay = 1000;
+            
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    const loadingBubble = document.getElementById('loading-bubble');
+                    if (loadingBubble) loadingBubble.remove();
+                    
+                    if (result.candidates && result.candidates.length > 0) {
+                        const aiText = result.candidates[0].content.parts[0].text;
+                        addMessageToChat('model', aiText);
+                        // Add AI response to history
+                        chatHistory.push({ role: "model", parts: [{ text: aiText }] });
+                    } else {
+                        addMessageToChat('model', 'Oops! My circuits are fizzy. 🎉 Try again!');
+                    }
+                    return; // Success, exit loop
+                    
+                } catch (error) {
+                    console.error('Error fetching from Gemini:', error);
+                    if (i === retries - 1) {
+                        const loadingBubble = document.getElementById('loading-bubble');
+                        if (loadingBubble) loadingBubble.remove();
+                        addMessageToChat('model', 'Aww, my party popper jammed! 😥 Please try again in a moment.');
+                    }
+                    // Exponential backoff
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+    </script>
+</body>
+</html>
