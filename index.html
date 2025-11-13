@@ -76,7 +76,6 @@
             height: 500px;
             position: relative;
             transform-style: preserve-3d;
-            /* MODIFICATION: Removed CSS transition to prevent conflict with GSAP */
             opacity: 0;
             visibility: hidden;
         }
@@ -109,10 +108,9 @@
             display: flex;
             flex-direction: column;
         }
-        /* Make inside content invisible until card is fully open */
         .card-inside-content {
             opacity: 0;
-            transition: opacity 0.5s ease-in 0.8s; /* Delay opacity */
+            transition: opacity 0.5s ease-in 0.8s;
         }
         .card.is-open .card-inside-content {
             opacity: 1;
@@ -153,12 +151,17 @@
         
         /* --- AI Chatbot --- */
         #chat-messages {
-            /* MODIFICATION: Removed fixed height */
-            /* height: 120px; */ 
             overflow-y: scroll;
             -webkit-overflow-scrolling: touch;
             border: 1px solid #e5e7eb;
             background: #f9fafb;
+            /* MODIFICATION: Hide scrollbar but keep functionality */
+            scrollbar-width: none; /* For Firefox */
+            -ms-overflow-style: none; /* For IE/Edge */
+        }
+        #chat-messages::-webkit-scrollbar {
+            width: 0;
+            background: transparent;
         }
         .chat-bubble {
             max-width: 80%;
@@ -167,17 +170,17 @@
             margin-bottom: 0.5rem;
             font-size: 0.875rem;
             line-height: 1.25rem;
-            flex-shrink: 0; /* Prevents bubbles from shrinking */
+            flex-shrink: 0;
         }
         .chat-bubble.user {
-            background-color: #dbeafe; /* Blue 200 */
-            color: #1e40af; /* Blue 800 */
+            background-color: #dbeafe;
+            color: #1e40af;
             align-self: flex-end;
             border-bottom-right-radius: 0.25rem;
         }
         .chat-bubble.model {
-            background-color: #fce7f3; /* Pink 100 */
-            color: #9d174d; /* Pink 800 */
+            background-color: #fce7f3;
+            color: #9d174d;
             align-self: flex-start;
             border-bottom-left-radius: 0.25rem;
         }
@@ -189,6 +192,30 @@
             50% { transform: translateY(-5px); filter: drop-shadow(0 0 10px #f59e0b); }
         }
 
+        /* MODIFICATION: Added styles for new arrow buttons */
+        .chat-arrow-btn {
+            position: absolute;
+            z-index: 10;
+            width: 1.75rem; /* w-7 */
+            height: 1.75rem; /* h-7 */
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 9999px; /* rounded-full */
+            color: #db2777; /* pink-600 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .chat-arrow-btn:hover {
+            background-color: rgba(255, 255, 255, 1);
+            transform: scale(1.1);
+        }
+        .chat-arrow-btn:active {
+            transform: scale(0.95);
+        }
+
         /* --- Particle Canvas --- */
         #sparkle-canvas {
             position: fixed;
@@ -196,7 +223,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* Allow clicks to go through */
+            pointer-events: none;
             z-index: 5; 
         }
         
@@ -209,12 +236,8 @@
             .card-inside {
                 padding: 1rem;
             }
-            /* MODIFICATION: Removed fixed height for mobile */
-            /* #chat-messages {
-                height: 100px;
-            } */
             .font-magic {
-                font-size: 2.25rem; /* 3xl */
+                font-size: 2.25rem;
             }
         }
     </style>
@@ -229,18 +252,15 @@
 
     <!-- ======== SCREEN 1: HOME PAGE ======== -->
     <div id="home-screen" class="absolute inset-0 z-20 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-1000">
-        <!-- Animated Waving Character -->
         <div id="gift-box" class="mb-8">
             <div class="text-7xl md:text-8xl transform scale-100">🎁</div>
         </div>
-        
         <h1 class="text-4xl md:text-5xl font-bold text-pink-500 font-magic mb-4">
             🎉 Welcome Darling , Here's Birthday Surprise!
         </h1>
         <p class="text-lg md:text-xl text-gray-600 mb-10">
             A special magical celebration waiting ...
         </p>
-        
         <button id="surprise-btn" class="pulse-button text-gray-900 bg-gradient-to-r from-yellow-300 to-amber-400 hover:from-yellow-400 hover:to-amber-500 font-bold py-4 px-10 rounded-full text-2xl shadow-lg transition-all duration-300 transform hover:scale-105">
             Surprise Me!
         </button>
@@ -285,15 +305,25 @@
                                 <h3 class="font-bold text-purple-600">A Message from Anas</h3>
                             </div>
                             
-                            <!-- MODIFICATION: Added flex-1 and min-h-0 for mobile scroll fix -->
-                            <div id="chat-messages" class="flex-1 min-h-0 p-2 rounded-lg flex flex-col space-y-2">
-                                <!-- Initial Greeting -->
-                                <div class="chat-bubble model">
-                                    Happy birthday, ZABII! I made this for you. 💝
+                            <!-- MODIFICATION: Wrapper for chat and arrows -->
+                            <div class="relative flex-1 min-h-0">
+                                <div id="chat-messages" class="flex-1 min-h-0 p-2 rounded-lg flex flex-col space-y-2 h-full">
+                                    <!-- Initial Greeting -->
+                                    <div class="chat-bubble model">
+                                        Happy birthday, ZABII! I made this for you. 💝
+                                    </div>
+                                    <div class="chat-bubble model">
+                                        Tell me something you love, and I'll write a special wish for you... right from my heart. 💖
+                                    </div>
                                 </div>
-                                <div class="chat-bubble model">
-                                    Tell me something you love, and I'll write a special wish for you... right from my heart. 💖
-                                </div>
+                                
+                                <!-- MODIFICATION: New Arrow Buttons -->
+                                <button id="chat-scroll-up" class="chat-arrow-btn top-1 right-1 hidden">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+                                </button>
+                                <button id="chat-scroll-down" class="chat-arrow-btn bottom-1 right-1 hidden">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                </button>
                             </div>
                             
                             <form id="chat-form" class="mt-2 flex space-x-2">
@@ -324,7 +354,7 @@
         // --- JAVASCRIPT GLOBAL STATE ---
         let musicPlayer;
         let isMusicPlaying = false;
-        let chatHistory = []; // For Gemini API
+        let chatHistory = [];
         
         // DOM Elements
         const homeScreen = document.getElementById('home-screen');
@@ -337,6 +367,9 @@
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
         const chatMessages = document.getElementById('chat-messages');
+        // MODIFICATION: Get new scroll buttons
+        const chatScrollUp = document.getElementById('chat-scroll-up');
+        const chatScrollDown = document.getElementById('chat-scroll-down');
 
         // Music Elements
         const musicToggle = document.getElementById('music-toggle');
@@ -379,6 +412,15 @@
             wishBtn.addEventListener('click', makeAWish);
             chatForm.addEventListener('submit', handleChatSubmit);
             
+            // MODIFICATION: Add event listeners for new buttons
+            chatScrollUp.addEventListener('click', () => {
+                chatMessages.scrollBy({ top: -70, behavior: 'smooth' });
+            });
+            chatScrollDown.addEventListener('click', () => {
+                chatMessages.scrollBy({ top: 70, behavior: 'smooth' });
+            });
+            chatMessages.addEventListener('scroll', updateScrollButtons);
+
             window.addEventListener('resize', () => {
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
@@ -454,6 +496,7 @@
                     if (typeof Tone !== 'undefined' && !isMusicPlaying) {
                          musicToggle.classList.add('pulse-music-btn');
                     }
+                    updateScrollButtons(); // MODIFICATION: Check buttons on open
                 }
             });
         }
@@ -479,6 +522,7 @@
                          if (typeof Tone !== 'undefined' && !isMusicPlaying) {
                             musicToggle.classList.add('pulse-music-btn');
                         }
+                        updateScrollButtons(); // MODIFICATION: Check buttons on open
                     }
                 });
         }
@@ -649,6 +693,36 @@
 - Example: If ZABII says "I love space", you could say: "My bro! I wish for you to shine brighter than all the stars. Happy birthday! 💖🙌"
 - Never break character. Everything is about your love and friendship for ZABII.`;
 
+        // MODIFICATION: New function to show/hide scroll buttons
+        function updateScrollButtons() {
+            if (!chatMessages) return;
+            
+            // Use requestAnimationFrame for most up-to-date values
+            requestAnimationFrame(() => {
+                const isScrollable = chatMessages.scrollHeight > chatMessages.clientHeight;
+                const scrollTop = chatMessages.scrollTop;
+                const scrollBottom = chatMessages.scrollHeight - chatMessages.clientHeight - scrollTop;
+
+                if (!isScrollable) {
+                    chatScrollUp.classList.add('hidden');
+                    chatScrollDown.classList.add('hidden');
+                    return;
+                }
+
+                if (scrollTop > 0) {
+                    chatScrollUp.classList.remove('hidden');
+                } else {
+                    chatScrollUp.classList.add('hidden');
+                }
+
+                if (scrollBottom > 1) { // 1px buffer for precision
+                    chatScrollDown.classList.remove('hidden');
+                } else {
+                    chatScrollDown.classList.add('hidden');
+                }
+            });
+        }
+
         async function handleChatSubmit(e) {
             e.preventDefault();
             const userInput = chatInput.value.trim();
@@ -674,7 +748,13 @@
             }
             
             chatMessages.appendChild(bubble);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            if (!isLoading) {
+                 chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+            }
+           
+            // MODIFICATION: Update buttons every time a message is added
+            updateScrollButtons();
         }
         
         async function getAIResponse() {
