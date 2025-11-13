@@ -58,7 +58,6 @@
         }
         
         /* --- Music Button Pulse --- */
-        /* MODIFICATION: Added pulse animation for music button */
         .pulse-music-btn {
              animation: pulse-music 2.5s infinite ease-in-out;
         }
@@ -78,8 +77,6 @@
             position: relative;
             transform-style: preserve-3d;
             /* MODIFICATION: Removed CSS transition to prevent conflict with GSAP */
-            /* transition: transform 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55); */
-            /* Initially hidden, will be shown by GSAP */
             opacity: 0;
             visibility: hidden;
         }
@@ -156,8 +153,8 @@
         
         /* --- AI Chatbot --- */
         #chat-messages {
-            height: 120px; /* Fixed height for chat */
-            /* MODIFICATION: Explicitly set overflow and touch scrolling */
+            /* MODIFICATION: Removed fixed height */
+            /* height: 120px; */ 
             overflow-y: scroll;
             -webkit-overflow-scrolling: touch;
             border: 1px solid #e5e7eb;
@@ -212,9 +209,10 @@
             .card-inside {
                 padding: 1rem;
             }
-            #chat-messages {
+            /* MODIFICATION: Removed fixed height for mobile */
+            /* #chat-messages {
                 height: 100px;
-            }
+            } */
             .font-magic {
                 font-size: 2.25rem; /* 3xl */
             }
@@ -287,8 +285,8 @@
                                 <h3 class="font-bold text-purple-600">A Message from Anas</h3>
                             </div>
                             
-                            <!-- MODIFICATION: Removed 'flex-1' to help mobile scrolling -->
-                            <div id="chat-messages" class="p-2 rounded-lg flex flex-col space-y-2">
+                            <!-- MODIFICATION: Added flex-1 and min-h-0 for mobile scroll fix -->
+                            <div id="chat-messages" class="flex-1 min-h-0 p-2 rounded-lg flex flex-col space-y-2">
                                 <!-- Initial Greeting -->
                                 <div class="chat-bubble model">
                                     Happy birthday, ZABII! I made this for you. 💝
@@ -313,7 +311,6 @@
 
     <!-- ======== MUSIC CONTROLS ======== -->
     <div id="music-controls" class="fixed bottom-4 right-4 z-50">
-        <!-- MODIFICATION: Added `pulse-music-btn` class -->
         <button id="music-toggle" class="bg-white/70 backdrop-blur-sm text-pink-500 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transform transition-transform hover:scale-110">
             <!-- Play Icon -->
             <svg id="icon-play" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
@@ -369,7 +366,6 @@
             initBackgroundDecorations();
             
             if (typeof Tone !== 'undefined') {
-                // MODIFICATION: Initialize music, but don't play.
                 initMusic();
                 musicToggle.addEventListener('click', toggleMusic);
             } else {
@@ -444,7 +440,6 @@
         function flipCardOnClick() {
             if (card.classList.contains('is-open')) return;
 
-            // Start audio context if it hasn't started
             if (typeof Tone !== 'undefined' && Tone.Transport.state !== 'started') {
                 Tone.start();
             }
@@ -456,7 +451,6 @@
                 onComplete: () => {
                     card.classList.add('is-open');
                     burstConfetti(150);
-                    // MODIFICATION: Start pulsing music button instead of autoplaying
                     if (typeof Tone !== 'undefined' && !isMusicPlaying) {
                          musicToggle.classList.add('pulse-music-btn');
                     }
@@ -482,7 +476,6 @@
                     onComplete: () => {
                         card.classList.add('is-open');
                         burstConfetti(150);
-                        // MODIFICATION: Start pulsing music button instead of autoplaying
                          if (typeof Tone !== 'undefined' && !isMusicPlaying) {
                             musicToggle.classList.add('pulse-music-btn');
                         }
@@ -535,9 +528,6 @@
             musicPlayer.start(0);
         }
         
-        // MODIFICATION: No longer exists, as music is user-toggled
-        // function playMusic() { ... } 
-        
         function toggleMusic() {
             if (!musicPlayer || typeof Tone === 'undefined') return;
 
@@ -552,7 +542,6 @@
                 isMusicPlaying = true;
                 iconPlay.classList.add('hidden');
                 iconPause.classList.remove('hidden');
-                // MODIFICATION: Stop pulsing when clicked
                 musicToggle.classList.remove('pulse-music-btn');
             }
         }
